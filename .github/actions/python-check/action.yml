@@ -1,6 +1,5 @@
-
 name: Python Quality Check
-description: Setup Python, install dependencies, lint and test
+description: Install dependencies, lint and test
 
 inputs:
   python-version:
@@ -15,9 +14,31 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install dependencies
+    - name: Install dependencies (timed)
       shell: bash
-      run: python -m pip install -r requirements.txt
+      run: |
+        python - <<'PY'
+        import os
+        import subprocess
+        import sys
+        import time
+
+        start = time.perf_counter()
+
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install",
+             "-r", "requirements.txt"],
+            check=True
+        )
+
+        elapsed = time.perf_counter() - start
+
+        print(f"Installation time: {elapsed:.2f} seconds")
+
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+            f.write("### Cache OFF - Baseline\n")
+            f.write(f"Install time: {elapsed:.2f} seconds\n")
+        PY
 
     - name: Run lint
       shell: bash
