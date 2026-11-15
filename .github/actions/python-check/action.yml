@@ -1,0 +1,28 @@
+
+name: Python Quality Check
+description: Setup Python, install dependencies, lint and test
+
+inputs:
+  python-version:
+    description: Python version
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run: python -m pip install -r requirements.txt
+
+    - name: Run lint
+      shell: bash
+      run: python -m ruff check .
+
+    - name: Run tests
+      shell: bash
+      run: python -m pytest -v
